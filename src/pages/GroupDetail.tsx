@@ -41,7 +41,7 @@ const GroupDetail: React.FC = () => {
     if (groupId) {
       fetchGroupDetails(groupId);
     }
-  }, [groupId, fetchGroupDetails]);
+  }, [groupId]);
   
   // Fetch group members and expense stats
   useEffect(() => {

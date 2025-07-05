@@ -4,8 +4,6 @@ import Expense from '../models/Expense.js';
 import Balance from '../models/Balance.js';
 
 // @desc    Create a new group
-// @route   POST /api/groups
-// @access  Private
 export const createGroup = async (req, res) => {
   try {
     const { name, members } = req.body;
@@ -14,10 +12,7 @@ export const createGroup = async (req, res) => {
       return res.status(400).json({ message: 'Group name is required' });
     }
 
-    const memberIds = Array.from(new Set([
-      ...members,
-      req.user._id.toString()
-    ]));
+    const memberIds = Array.from(new Set([...members, req.user._id.toString()]));
 
     for (const memberId of memberIds) {
       const user = await User.findById(memberId);
@@ -32,13 +27,9 @@ export const createGroup = async (req, res) => {
       creator: req.user._id,
     });
 
-    const balancePromises = memberIds.map(userId => {
-      return Balance.create({
-        user: userId,
-        group: group._id,
-        amount: 0,
-      });
-    });
+    const balancePromises = memberIds.map(userId =>
+      Balance.create({ user: userId, group: group._id, amount: 0 })
+    );
 
     await Promise.all(balancePromises);
 
@@ -50,8 +41,6 @@ export const createGroup = async (req, res) => {
 };
 
 // @desc    Get all groups for current user
-// @route   GET /api/groups
-// @access  Private
 export const getGroups = async (req, res) => {
   try {
     const groups = await Group.find({ members: req.user._id }).sort({ updatedAt: -1 });
@@ -63,8 +52,6 @@ export const getGroups = async (req, res) => {
 };
 
 // @desc    Get single group by ID
-// @route   GET /api/groups/:id
-// @access  Private
 export const getGroupById = async (req, res) => {
   try {
     const group = await Group.findOne({
@@ -84,8 +71,6 @@ export const getGroupById = async (req, res) => {
 };
 
 // @desc    Get group members
-// @route   GET /api/groups/:id/members
-// @access  Private
 export const getGroupMembers = async (req, res) => {
   try {
     const group = await Group.findOne({
@@ -106,8 +91,6 @@ export const getGroupMembers = async (req, res) => {
 };
 
 // @desc    Update group
-// @route   PUT /api/groups/:id
-// @access  Private
 export const updateGroup = async (req, res) => {
   try {
     const { name, members } = req.body;
@@ -128,10 +111,7 @@ export const updateGroup = async (req, res) => {
     if (name) group.name = name;
 
     if (members) {
-      const memberIds = Array.from(new Set([
-        ...members,
-        group.creator.toString()
-      ]));
+      const memberIds = Array.from(new Set([...members, group.creator.toString()]));
 
       for (const memberId of memberIds) {
         const user = await User.findById(memberId);
@@ -147,13 +127,9 @@ export const updateGroup = async (req, res) => {
 
       const newMemberIds = memberIds.filter(id => !existingUserIds.includes(id));
 
-      const balancePromises = newMemberIds.map(userId => {
-        return Balance.create({
-          user: userId,
-          group: group._id,
-          amount: 0,
-        });
-      });
+      const balancePromises = newMemberIds.map(userId =>
+        Balance.create({ user: userId, group: group._id, amount: 0 })
+      );
 
       await Promise.all(balancePromises);
     }
@@ -167,8 +143,6 @@ export const updateGroup = async (req, res) => {
 };
 
 // @desc    Delete group
-// @route   DELETE /api/groups/:id
-// @access  Private
 export const deleteGroup = async (req, res) => {
   try {
     const group = await Group.findById(req.params.id);
@@ -182,7 +156,6 @@ export const deleteGroup = async (req, res) => {
     }
 
     const expenses = await Expense.findOne({ group: group._id });
-
     if (expenses) {
       return res.status(400).json({ message: 'Cannot delete group with existing expenses' });
     }
